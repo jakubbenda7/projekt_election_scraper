@@ -27,38 +27,27 @@ def vypis_jmena(tabulky:BeautifulSoup, jmeno_tagu:str="td"):
     return strany
 
 #registered
-def vypis_pocet_registrovaných(tabulky_seznamu:list, jmeno_tagu:str="td"):
-    registered=[]
+def vypis_pocet_registrovanych(tabulky_seznamu: list, jmeno_tagu: str = "td"):
+    registered = []
     for tabulky in tabulky_seznamu:
         for tabulka in tabulky:
-            for pocet_regis in tabulka.find_all(jmeno_tagu,{"class":"cislo", "headers":"sa2"}):
-                registered.append(pocet_regis)
-    return registered
-# Funkce pro extrakci čísel z řetězců a jejich převedení na celá čísla
-def extrahovat_cisla(registrovana_data):
-    cisla = []
-    for data in registrovana_data:
-        cislo_text = re.sub(r'\D', '', data.text)  # Odstranění všech nečíselných znaků
-        if cislo_text:  # Ujistěte se, že existuje text s čísly
-            cislo = int(cislo_text)
-            cisla.append(cislo)
-    return cisla
+            registered.extend(tabulka.find_all(jmeno_tagu, {"class": "cislo", "headers": "sa2"}))
+    return [int(re.sub(r'\D', '', data.text)) for data in registered if data.text]
+
 #envelopes
-def vypis_pocet_obalek(tabulky_seznamu:list, jmeno_tagu:str="td"):
-    envelopes=[]
+def vypis_pocet_obalek(tabulky_seznamu: list, jmeno_tagu: str = "td"):
+    envelopes = []
     for tabulky in tabulky_seznamu:
         for tabulka in tabulky:
-            for pocet_envel in tabulka.find_all(jmeno_tagu,{"class":"cislo", "headers":"sa5"}):
-                envelopes.append(pocet_envel)
-    return envelopes
+            envelopes.extend(tabulka.find_all(jmeno_tagu, {"class": "cislo", "headers": "sa5"}))
+    return [int(re.sub(r'\D', '', data.text)) for data in envelopes if data.text]
 #valid
-def vypis_pocet_platnych(tabulky_seznamu:list, jmeno_tagu:str="td"):
-    valid=[]
+def vypis_pocet_platnych(tabulky_seznamu: list, jmeno_tagu: str = "td"):
+    valid = []
     for tabulky in tabulky_seznamu:
         for tabulka in tabulky:
-            for pocet_valid in tabulka.find_all(jmeno_tagu,{"class":"cislo", "headers":"sa6"}):
-                valid.append(pocet_valid)
-    return valid
+            valid.extend(tabulka.find_all(jmeno_tagu, {"class": "cislo", "headers": "sa6"}))
+    return [int(re.sub(r'\D', '', data.text)) for data in valid if data.text]
 #celkem hlasů pro stranu
 def vypis_pocet_hlasu_pro_strany(tabulky_seznamu: list, jmeno_tagu: str, headers: str):
     hlasy = []
@@ -82,10 +71,10 @@ def main():
     unikatni_odkazy_s_vyber= []
     [unikatni_odkazy_s_vyber.append(x) for x in odkazy_s_vyber if x not in unikatni_odkazy_s_vyber]
     
-      #vytvoření listu celých odkazů na původním url
+    #vytvoření listu celých odkazů na původním url
     odkazy_list=["https://volby.cz/pls/ps2017nss/" + odkaz for odkaz in unikatni_odkazy_s_vyber]
 
-      #získání dat z odkazů v tabulkách hlavního url
+    #získání dat z odkazů v tabulkách hlavního url
     data_z_odkazu=[]
     for cely_odkaz in odkazy_list:
         data_z_odkazu.append(tabulky_na_url(cely_odkaz))
@@ -110,18 +99,14 @@ def main():
         matches= re.findall(regex,url)
         kody_z_url.extend(matches)
         
-    registered=vypis_pocet_registrovaných(data_z_odkazu)
-    registrovana_cisla = extrahovat_cisla(registered) #zde jsou uložena čísla počtů registrovaných voličů
-    envelopes=vypis_pocet_obalek(data_z_odkazu)
-    envelopes_cisla = extrahovat_cisla(envelopes) #zde jsou uložena čísla počtů obálek
-    valid=vypis_pocet_platnych(data_z_odkazu)
-    valid_cisla = extrahovat_cisla(valid) #zde jsou uložena čísla počtů platných hlasů
+    registrovana_cisla=vypis_pocet_registrovanych(data_z_odkazu)#zde jsou uložena čísla počtů registrovaných voličů
+    envelopes_cisla=vypis_pocet_obalek(data_z_odkazu)#zde jsou uložena čísla počtů obálek
+    valid_cisla=vypis_pocet_platnych(data_z_odkazu)#zde jsou uložena čísla počtů platných hlasů
     
     hlasy1hotovo = vypis_pocet_hlasu_pro_strany(data_z_odkazu, "td", "t1sa2 t1sb3")
     hlasy2hotovo = vypis_pocet_hlasu_pro_strany(data_z_odkazu, "td", "t2sa2 t2sb3")
 
     csv_file = sys.argv[2]
-    pocet_items = len(hlava)
     index1 = int(len(hlasy1hotovo)/ len(kody_z_url))
     index2 = int(len(hlasy2hotovo)/ len(kody_z_url))
 
@@ -137,14 +122,3 @@ def main():
     print(f"UKONČUJI",sys.argv[0])
 if __name__ == "__main__":
     main()
-        
-
-        
-
-    
-
-    
-          
-    
-    
-    
